@@ -42,11 +42,63 @@ team_t team = {
 
 #define SIZE_T_SIZE (ALIGN(sizeof(size_t)))
 
+//macro
+#define WSIZE 4 //워드사이즈4
+#define DSIZE 8 //워드더블사이즈8
+#define CHUNKSIZE (1<<12) //힙 확장
+
+#define MAX(x, y) ((x)>(y) ? (x) : (y))
+
+#define PACK(size, alloc) ((size) | (alloc)) //크기와 할당된 비트 워드에 pack
+
+//주소 p의 워드 읽기, 쓰기
+#define GET(p) (*(unsigned int*)(p))
+#define PUT(p, val) (*(unsigned int*)(p) = (val))
+
+//주소 p의 크기, 할당 필드 읽기
+#define GET_SIZE(p) ((GET(p) & ~0x7))
+#define GET_ALLOC(p) ((GET(p) & 0x1))
+
+//bp(블록 포인터)와 헤더, 풋터의 compute 주소
+#define HDRP(bp) ((char *)(bp) - WSIZE) 
+#define FTRP(bp) ((char *)(bp) + GET_SIZE(HDRP(bp)) - DSIZE) 
+
+//bp(블록 포인터)와 이전, 다음 블록의 compute 주소
+#define NEXT_BLKP(bp) ((char *)(bp) + GET_SIZE(((char *)(bp) - WSIZE)))
+#define PREV_BLKP(bp) ((char *)(bp) - GET_SIZE(((char *)(bp) - DSIZE)))
+
+static char *heap_listp;
+
+static void *coalesce(void *bp){
+    
+}
+
+static void *extend_heap(size_t words){
+    char *bp;
+    size_t size;
+
+    size = (words % 2) ? (words+1) * WSIZE : words * WSIZE;
+    if ((long)(bp = mem_sbrk(size)) == -1) return NULL;
+
+    PUT(HDRP(bp), PACK(size, 0)); //헤더(프롤로그)
+    PUT(FTRP(bp), PACK(size, 0)); //풋터(프롤로그)
+    PUT(HDRP(NEXT_BLKP(bp)), PACK(0, 1)); //헤더(에필로그)
+    
+    return coalesce(bp);
+}
+
 /*
  * mm_init - initialize the malloc package.
  */
 int mm_init(void)
 {
+    if ((heap_listp = mem_sbrk(4*WSIZE)) == (void *)-1) return -1;
+    PUT(heap_listp, 0);
+    PUT(heap_listp + (WSIZE), PACK(DSIZE, 1));
+    PUT(heap_listp + (2*WSIZE), PACK(DSIZE, 1));
+    PUT(heap_listp + (3*WSIZE), PACK(0, 1));
+    heap_listp += (2*WSIZE);
+
     return 0;
 }
 
