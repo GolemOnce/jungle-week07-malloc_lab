@@ -575,7 +575,7 @@ static trace_t *read_trace(char *tracedir, char *filename)
 			max_index = (index > max_index) ? index : max_index;
 			break;
 		case 'f':
-			fscanf(tracefile, "%ud", &index);
+			fscanf(tracefile, "%u", &index);
 			trace->ops[op_index].type = FREE;
 			trace->ops[op_index].index = index;
 			break;
