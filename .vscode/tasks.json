@@ -49,6 +49,13 @@
             "options": {
                 "cwd": "${workspaceFolder}/malloc-lab"
             }
+        },
+        {
+            "label": "make mdriver (debug)",
+            "type": "shell",
+            "command": "make clean && make mdriver",
+            "options": { "cwd": "${workspaceFolder}" },
+            "problemMatcher": "$gcc"
         }
     ]
 }
